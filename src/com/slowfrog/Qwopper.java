@@ -11,12 +11,14 @@ import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.Toolkit;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
+import java.util.Random;
 
 /**
  * This class will try to play QWOP and evolve some way to play well...
- * hopefully.
- * Game at {@link http://foddy.net/Athletics.html}
+ * hopefully. Game at {@link http://foddy.net/Athletics.html}
  * 
  * @author SlowFrog
  */
@@ -117,21 +119,116 @@ public class Qwopper {
     return false;
   }
 
+  /**
+   * Move the mouse cursor to a given screen position and click with the left
+   * mouse button.
+   */
+  private static void clickAt(Robot rob, int x, int y) {
+    rob.mouseMove(x, y);
+    rob.mousePress(InputEvent.BUTTON1_MASK);
+    rob.mouseRelease(InputEvent.BUTTON1_MASK);
+  }
+  
+  private static void clickKey(Robot rob, int keycode) {
+    rob.keyPress(keycode);
+    rob.keyRelease(keycode);
+  }
+
+  /** Wait for a few milliseconds, without fear of an InterruptedException. */
+  private static void doWait(int millis) {
+    try {
+      Thread.sleep(millis);
+    } catch (InterruptedException e) {
+      // Don't mind
+    }
+  }
+
+  /**
+   * Play a string. Interpret a string of QWOPqwop+ as a music sheet. QWOP means
+   * press the key Q, W, O or P qwop means release the key + means wait for a
+   * small delay
+   * 
+   */
+  private static void playString(Robot rob, String str) {
+    for (int i = 0; i < str.length(); ++i) {
+      char c = str.charAt(i);
+      switch (c) {
+      case 'Q':
+        rob.keyPress(KeyEvent.VK_Q);
+        break;
+
+      case 'W':
+        rob.keyPress(KeyEvent.VK_W);
+        break;
+
+      case 'O':
+        rob.keyPress(KeyEvent.VK_O);
+        break;
+
+      case 'P':
+        rob.keyPress(KeyEvent.VK_P);
+        break;
+
+      case 'q':
+        rob.keyRelease(KeyEvent.VK_Q);
+        break;
+
+      case 'w':
+        rob.keyRelease(KeyEvent.VK_W);
+        break;
+
+      case 'o':
+        rob.keyRelease(KeyEvent.VK_O);
+        break;
+
+      case 'p':
+        rob.keyRelease(KeyEvent.VK_P);
+        break;
+
+      case '+':
+        doWait(100);
+        break;
+
+      default:
+        System.out.println("Unkown 'note': " + c);
+      }
+    }
+  }
+
+  /** All possible 'notes' */
+  private static final String NOTES = "QWOPqwop+";
+
+  /** Builds a completely random string of 'notes'. */
+  private static String makeRandomString(int len) {
+    Random random = new Random(System.currentTimeMillis());
+    String l = "";
+    for (int i = 0; i < len; ++i) {
+      int rnd = random.nextInt(NOTES.length());
+      l += NOTES.substring(rnd, rnd + 1);
+    }
+    return l;
+  }
+
+  private static void playOneRandomGame(Robot rob, int[] origin) {
+    String str = makeRandomString(30);
+    while (!isFinished(rob, origin)) {
+      playString(rob, str);
+    }
+    System.out.println("\nFinished!");
+    doWait(5000);
+  }
+
   public static void main(String[] args) {
     try {
       Robot rob = new Robot();
       int[] origin = findOrigin(rob);
       System.out.printf("Origin: %d,%d", origin[0], origin[1]);
+      clickAt(rob, origin[0], origin[1]);
 
-      while (!isFinished(rob, origin)) {
-        try {
-          Thread.sleep(100);
-          System.out.print(".");
-        } catch (InterruptedException e) {
-          e.printStackTrace();
-        }
+      while (true) {
+        playOneRandomGame(rob, origin);
+        clickKey(rob, KeyEvent.VK_SPACE);
       }
-      System.out.println("\nFinished!");
 
     } catch (Throwable t) {
       t.printStackTrace();
