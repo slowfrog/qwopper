@@ -1,3 +1,8 @@
+/*
+ * Copyright SlowFrog 2011
+ *
+ * License granted to anyone for any kind of purpose as long as you don't sue me.
+ */
 package com.slowfrog;
 
 import java.awt.AWTException;
@@ -6,9 +11,15 @@ import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.Toolkit;
-import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 
+/**
+ * This class will try to play QWOP and evolve some way to play well...
+ * hopefully.
+ * Game at {@link http://foddy.net/Athletics.html}
+ * 
+ * @author SlowFrog
+ */
 public class Qwopper {
 
   /** Tolerance for color comparison. */
@@ -28,7 +39,7 @@ public class Qwopper {
   }
 
   /**
-   * Checks if from a given x,y position we can find the pattern what identifies
+   * Checks if from a given x,y position we can find the pattern that identifies
    * the blue border of the message box.
    */
   private static boolean matchesBlueBorder(BufferedImage img, int x, int y) {
@@ -74,9 +85,8 @@ public class Qwopper {
   }
 
   /** Look for the origin of the game area on screen. */
-  private static int[] findOrigin() throws AWTException {
+  private static int[] findOrigin(Robot rob) throws AWTException {
     Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-    Robot rob = new Robot();
     BufferedImage shot = rob.createScreenCapture(new Rectangle(dim));
     for (int x = 0; x < dim.width; x += 4) {
       for (int y = 0; y < dim.height; y += 4) {
@@ -90,10 +100,39 @@ public class Qwopper {
         "Origin not found. Make sure the game is open and fully visible.");
   }
 
+  /** Checks if the game is finished by looking at the two yellow medals. */
+  private static boolean isFinished(Robot rob, int[] origin) {
+    Color col1 = rob.getPixelColor(origin[0] + 157, origin[1] + 126);
+    if (colorMatches(
+        (col1.getRed() << 16) | (col1.getGreen() << 8) | col1.getBlue(),
+        0xffff00)) {
+      Color col2 = rob.getPixelColor(origin[0] + 482, origin[1] + 126);
+      if (colorMatches(
+          (col2.getRed() << 16) | (col2.getGreen() << 8) | col2.getBlue(),
+          0xffff00)) {
+        return true;
+      }
+
+    }
+    return false;
+  }
+
   public static void main(String[] args) {
     try {
-      int[] origin = findOrigin();
+      Robot rob = new Robot();
+      int[] origin = findOrigin(rob);
       System.out.printf("Origin: %d,%d", origin[0], origin[1]);
+
+      while (!isFinished(rob, origin)) {
+        try {
+          Thread.sleep(100);
+          System.out.print(".");
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+      }
+      System.out.println("\nFinished!");
+
     } catch (Throwable t) {
       t.printStackTrace();
     }
