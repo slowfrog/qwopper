@@ -3,16 +3,21 @@ package com.slowfrog;
 import java.awt.AWTException;
 import java.awt.BorderLayout;
 import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Random;
 
 import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -21,6 +26,7 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 
 public class QwopControl extends JFrame implements Log {
   
@@ -42,10 +48,14 @@ public class QwopControl extends JFrame implements Log {
   private JTextArea logOutput;
   private JScrollPane logScroll;
   private JTextField sequence;
+  private JLabel distance;
+  
   private Random random;
+  private Timer timer;
 
   public QwopControl() throws AWTException {
     super("QWOP control");
+    this.move(200, 0);
     this.setDefaultCloseOperation(EXIT_ON_CLOSE);
 
     rob = new Robot();
@@ -62,14 +72,23 @@ public class QwopControl extends JFrame implements Log {
     JButton init = new JButton("Find game area");
     bar.add(init);
 
+    final JButton goRandom = new JButton("Random...");
+    bar.add(goRandom);
+
     final JButton go = new JButton("Run, Qwop, run!");
     bar.add(go);
+
+    final JButton stop = new JButton("Stop");
+    bar.add(stop);
 
     JPanel top = new JPanel();
     top.setLayout(new BorderLayout());
     top.add(new JLabel("Current: "), BorderLayout.WEST);
     sequence = new JTextField();
     top.add(sequence, BorderLayout.CENTER);
+    distance = new JLabel();
+    distance.setPreferredSize(new Dimension(200, 30));
+    top.add(distance, BorderLayout.SOUTH);
     c.add(top, BorderLayout.NORTH);
     
     
@@ -93,21 +112,58 @@ public class QwopControl extends JFrame implements Log {
       }
     });
 
+    goRandom.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent ev) {
+        String dna = Qwopper.makeRealisticRandomString(10 + random.nextInt(21));
+        sequence.setText(dna);
+      }
+    });
+    
     go.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent ev) {
-        // This is to restore the mouse approximately at its starting position
-        // after having clicked on the QWOP window to transfer keyboard focus
-        final Point screenPoint = new Point(5, 5);
-        SwingUtilities.convertPointToScreen(screenPoint, go);
-        execOutOfAWT(new Runnable() {
-          public void run() {
-            qwopper.startGame();
-            rob.mouseMove(screenPoint.x, screenPoint.y);
-            String dna = Qwopper.makeRealisticRandomString(10 + random.nextInt(21));
-            sequence.setText(dna);
-            qwopper.playOneRandomGame(dna);
-          }
-        });
+        runGame(go);
+      }
+    });
+    
+    stop.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent ev) {
+        qwopper.stop();
+      }
+    });
+    
+    timer = new Timer(1000, new ActionListener() {
+      public void actionPerformed(ActionEvent ev) {
+        Rectangle distRect = new Rectangle();
+        int[] origin = qwopper.getOrigin();
+        distRect.x = origin[0] + 200;
+        distRect.y = origin[1] + 20;
+        distRect.width = 200;
+        distRect.height = 30;
+        BufferedImage distImg = rob.createScreenCapture(distRect);
+        ImageIcon icon = new ImageIcon();
+        icon.setImage(distImg);
+        distance.setIcon(icon);
+        if (!qwopper.isRunning()) {
+          timer.stop();
+        }
+      }
+    });
+  }
+  
+  private void runGame(JComponent source) {
+    // This is to restore the mouse approximately at its starting position
+    // after having clicked on the QWOP window to transfer keyboard focus
+    final Point screenPoint = new Point(5, 5);
+    SwingUtilities.convertPointToScreen(screenPoint, source);
+    execOutOfAWT(new Runnable() {
+      public void run() {
+        qwopper.startGame();
+        rob.mouseMove(screenPoint.x, screenPoint.y);
+        timer.setDelay(1000);
+        timer.start();
+
+        String dna = sequence.getText();
+        qwopper.playOneRandomGame(dna);
       }
     });
   }
@@ -117,9 +173,13 @@ public class QwopControl extends JFrame implements Log {
     t.start();
   }
 
-  public void log(String message) {
-    // Using setText() to enable auto-scrolling
-    logOutput.setText(logOutput.getText() + message + "\n");
+  public void log(final String message) {
+    SwingUtilities.invokeLater(new Runnable() {
+      public void run() {
+        // Using setText() to enable auto-scrolling
+        logOutput.setText(logOutput.getText() + message + "\n");
+      }
+    });
   }
 
   public void log(String message, Throwable e) {

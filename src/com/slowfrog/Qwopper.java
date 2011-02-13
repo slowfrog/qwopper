@@ -115,8 +115,11 @@ public class Qwopper {
    * small delay
    * 
    */
-  private static void playString(Robot rob, String str) {
+  private void playString(Robot rob, String str) {
     for (int i = 0; i < str.length(); ++i) {
+      if (stop) {
+        return;
+      }
       char c = str.charAt(i);
       switch (c) {
       case 'Q':
@@ -249,10 +252,16 @@ public class Qwopper {
   private boolean finished;
   
   private Log log;
+  
+  private boolean stop;
 
   public Qwopper(Robot rob, Log log) {
     this.rob = rob;
     this.log = log;
+  }
+  
+  public int[] getOrigin() {
+    return origin;
   }
 
   /** Look for the origin of the game area on screen. */
@@ -290,6 +299,10 @@ public class Qwopper {
     return false;
   }
 
+  public boolean isRunning() {
+    return !(this.stop || this.finished);
+  }
+  
   /** Find the real origin of the game. */
   public int[] findRealOrigin() {
     origin = findOrigin(rob);
@@ -305,17 +318,22 @@ public class Qwopper {
    * for next games.
    */
   public void startGame() {
+    stop = false;
     clickAt(rob, origin[0], origin[1]);
     if (finished) {
       clickKey(rob, KeyEvent.VK_SPACE);
     }
+  }
+  
+  public void stop() {
+    stop = true;
   }
 
   public void playOneRandomGame(String str) {
     log.log("Playing " + str);
     long start = System.currentTimeMillis();
     doWait(500);
-    while (!isFinished()) {
+    while (!(isFinished() || stop)) {
       playString(rob, str);
     }
     long end = System.currentTimeMillis();
