@@ -87,7 +87,7 @@ public class Qwopper {
   }
 
   /** Look for the origin of the game area on screen. */
-  private static int[] findOrigin(Robot rob) throws AWTException {
+  private static int[] findOrigin(Robot rob) {
     Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
     BufferedImage shot = rob.createScreenCapture(new Rectangle(dim));
     for (int x = 0; x < dim.width; x += 4) {
@@ -118,6 +118,15 @@ public class Qwopper {
     }
     return false;
   }
+  
+  private static int[] findRealOrigin(Robot rob) {
+    int[] origin = findOrigin(rob);
+    if (!isFinished(rob, origin)) {
+      return origin;
+    } else {
+      return new int[] { origin[0] - 5, origin[1] + 4 };
+    }
+  }
 
   /**
    * Move the mouse cursor to a given screen position and click with the left
@@ -128,7 +137,7 @@ public class Qwopper {
     rob.mousePress(InputEvent.BUTTON1_MASK);
     rob.mouseRelease(InputEvent.BUTTON1_MASK);
   }
-  
+
   private static void clickKey(Robot rob, int keycode) {
     rob.keyPress(keycode);
     rob.keyRelease(keycode);
@@ -196,7 +205,7 @@ public class Qwopper {
   }
 
   /** All possible 'notes' */
-  private static final String NOTES = "QWOPqwop+";
+  private static final String NOTES = "QWOPqwop++";
 
   /** Builds a completely random string of 'notes'. */
   private static String makeRandomString(int len) {
@@ -209,20 +218,103 @@ public class Qwopper {
     return l;
   }
 
+  private static int keyIndex(char key) {
+    switch (Character.toLowerCase(key)) {
+    case 'q':
+      return 0;
+    case 'w':
+      return 1;
+    case 'o':
+      return 2;
+    case 'p':
+      return 3;
+    default:
+      throw new IllegalArgumentException("Invalid key: " + key);
+    }
+  }
+
+  private static String indexKey(int index) {
+    return "qwop".substring(index, index + 1);
+  }
+
+  /**
+   * A realistic random string is one where:
+   * <ul>
+   * <li>a key press is always followed by a key release for the same key</li>
+   * <li>there is some time between a press and a release of a key</li>
+   * <li>there is also some time between a release and a press of a key.</li>
+   * </ul>
+   * 
+   * @param duration
+   *          duration of the sequence in 'ticks'
+   */
+  private static String makeRealisticRandomString(int duration) {
+    Random random = new Random(System.currentTimeMillis());
+    String str = "";
+    boolean[] down = { false, false, false, false };
+    boolean[] justDown = { false, false, false, false };
+    boolean[] justUp = { false, false, false, false };
+    int cur = 0;
+    while (cur < duration) {
+      int rnd = random.nextInt(NOTES.length());
+      String k = NOTES.substring(rnd, rnd + 1);
+      char kc = k.charAt(0);
+      if (kc == '+') { // delay
+        ++cur;
+        for (int i = 0; i < 4; ++i) {
+          justDown[i] = false;
+          justUp[i] = false;
+        }
+      } else if (Character.isUpperCase(kc)) { // key press
+        int ki = keyIndex(kc);
+        if (!(down[ki] || justUp[ki])) {
+          down[ki] = true;
+          justDown[ki] = true;
+        } else {
+          continue;
+        }
+        
+      } else { // Lower case: key release
+        int ki = keyIndex(kc);
+        if (down[ki] && !justDown[ki]) {
+          down[ki] = false;
+          justUp[ki] = true;
+        } else {
+          continue;
+        }
+      }
+
+      str += kc;
+    }
+
+    // Make sure all keys are released at the end (maybe without a delay)
+    for (int i = 0; i < down.length; ++i) {
+      if (down[i]) {
+        str += indexKey(i);
+      }
+    }
+    return str;
+  }
+
   private static void playOneRandomGame(Robot rob, int[] origin) {
-    String str = makeRandomString(30);
+    Random rnd = new Random(System.currentTimeMillis());
+    String str = makeRealisticRandomString(10 + rnd.nextInt(21));
+    System.out.println("Playing " + str);
+    long start = System.currentTimeMillis();
+    doWait(500);
     while (!isFinished(rob, origin)) {
       playString(rob, str);
     }
-    System.out.println("\nFinished!");
+    long end = System.currentTimeMillis();
+    System.out.printf("Finished in %.1f s.\n", (end - start) / 1000.0);
     doWait(5000);
   }
 
   public static void main(String[] args) {
     try {
       Robot rob = new Robot();
-      int[] origin = findOrigin(rob);
-      System.out.printf("Origin: %d,%d", origin[0], origin[1]);
+      int[] origin = findRealOrigin(rob);
+      System.out.printf("Origin: %d,%d\n", origin[0], origin[1]);
       clickAt(rob, origin[0], origin[1]);
 
       while (true) {
