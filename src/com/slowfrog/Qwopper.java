@@ -5,7 +5,6 @@
  */
 package com.slowfrog;
 
-import java.awt.AWTException;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Rectangle;
@@ -84,48 +83,6 @@ public class Qwopper {
       }
     }
     return new int[] { ax, ay };
-  }
-
-  /** Look for the origin of the game area on screen. */
-  private static int[] findOrigin(Robot rob) {
-    Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-    BufferedImage shot = rob.createScreenCapture(new Rectangle(dim));
-    for (int x = 0; x < dim.width; x += 4) {
-      for (int y = 0; y < dim.height; y += 4) {
-        if (matchesBlueBorder(shot, x, y)) {
-          int[] corner = slideTopLeft(shot, x, y);
-          return new int[] { corner[0] - 124, corner[1] - 103 };
-        }
-      }
-    }
-    throw new RuntimeException(
-        "Origin not found. Make sure the game is open and fully visible.");
-  }
-
-  /** Checks if the game is finished by looking at the two yellow medals. */
-  private static boolean isFinished(Robot rob, int[] origin) {
-    Color col1 = rob.getPixelColor(origin[0] + 157, origin[1] + 126);
-    if (colorMatches(
-        (col1.getRed() << 16) | (col1.getGreen() << 8) | col1.getBlue(),
-        0xffff00)) {
-      Color col2 = rob.getPixelColor(origin[0] + 482, origin[1] + 126);
-      if (colorMatches(
-          (col2.getRed() << 16) | (col2.getGreen() << 8) | col2.getBlue(),
-          0xffff00)) {
-        return true;
-      }
-
-    }
-    return false;
-  }
-  
-  private static int[] findRealOrigin(Robot rob) {
-    int[] origin = findOrigin(rob);
-    if (!isFinished(rob, origin)) {
-      return origin;
-    } else {
-      return new int[] { origin[0] - 5, origin[1] + 4 };
-    }
   }
 
   /**
@@ -207,17 +164,6 @@ public class Qwopper {
   /** All possible 'notes' */
   private static final String NOTES = "QWOPqwop++";
 
-  /** Builds a completely random string of 'notes'. */
-  private static String makeRandomString(int len) {
-    Random random = new Random(System.currentTimeMillis());
-    String l = "";
-    for (int i = 0; i < len; ++i) {
-      int rnd = random.nextInt(NOTES.length());
-      l += NOTES.substring(rnd, rnd + 1);
-    }
-    return l;
-  }
-
   private static int keyIndex(char key) {
     switch (Character.toLowerCase(key)) {
     case 'q':
@@ -248,7 +194,7 @@ public class Qwopper {
    * @param duration
    *          duration of the sequence in 'ticks'
    */
-  private static String makeRealisticRandomString(int duration) {
+  public static String makeRealisticRandomString(int duration) {
     Random random = new Random(System.currentTimeMillis());
     String str = "";
     boolean[] down = { false, false, false, false };
@@ -273,7 +219,7 @@ public class Qwopper {
         } else {
           continue;
         }
-        
+
       } else { // Lower case: key release
         int ki = keyIndex(kc);
         if (down[ki] && !justDown[ki]) {
@@ -296,34 +242,83 @@ public class Qwopper {
     return str;
   }
 
-  private static void playOneRandomGame(Robot rob, int[] origin) {
-    Random rnd = new Random(System.currentTimeMillis());
-    String str = makeRealisticRandomString(10 + rnd.nextInt(21));
-    System.out.println("Playing " + str);
+  private Robot rob;
+
+  private int[] origin;
+
+  private boolean finished;
+  
+  private Log log;
+
+  public Qwopper(Robot rob, Log log) {
+    this.rob = rob;
+    this.log = log;
+  }
+
+  /** Look for the origin of the game area on screen. */
+  private static int[] findOrigin(Robot rob) {
+    Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+    BufferedImage shot = rob.createScreenCapture(new Rectangle(dim));
+    for (int x = 0; x < dim.width; x += 4) {
+      for (int y = 0; y < dim.height; y += 4) {
+        if (matchesBlueBorder(shot, x, y)) {
+          int[] corner = slideTopLeft(shot, x, y);
+          return new int[] { corner[0] - 124, corner[1] - 103 };
+        }
+      }
+    }
+    throw new RuntimeException(
+        "Origin not found. Make sure the game is open and fully visible.");
+  }
+
+  /** Checks if the game is finished by looking at the two yellow medals. */
+  public boolean isFinished() {
+    Color col1 = rob.getPixelColor(origin[0] + 157, origin[1] + 126);
+    if (colorMatches(
+        (col1.getRed() << 16) | (col1.getGreen() << 8) | col1.getBlue(),
+        0xffff00)) {
+      Color col2 = rob.getPixelColor(origin[0] + 482, origin[1] + 126);
+      if (colorMatches(
+          (col2.getRed() << 16) | (col2.getGreen() << 8) | col2.getBlue(),
+          0xffff00)) {
+        finished = true;
+        return true;
+      }
+
+    }
+    finished = false;
+    return false;
+  }
+
+  /** Find the real origin of the game. */
+  public int[] findRealOrigin() {
+    origin = findOrigin(rob);
+    if (isFinished()) {
+      origin = new int[] { origin[0] - 5, origin[1] + 4 };
+    }
+
+    return origin;
+  }
+
+  /**
+   * Start a game, either by clicking on it (at first load) or pressing space
+   * for next games.
+   */
+  public void startGame() {
+    clickAt(rob, origin[0], origin[1]);
+    if (finished) {
+      clickKey(rob, KeyEvent.VK_SPACE);
+    }
+  }
+
+  public void playOneRandomGame(String str) {
+    log.log("Playing " + str);
     long start = System.currentTimeMillis();
     doWait(500);
-    while (!isFinished(rob, origin)) {
+    while (!isFinished()) {
       playString(rob, str);
     }
     long end = System.currentTimeMillis();
-    System.out.printf("Finished in %.1f s.\n", (end - start) / 1000.0);
-    doWait(5000);
-  }
-
-  public static void main(String[] args) {
-    try {
-      Robot rob = new Robot();
-      int[] origin = findRealOrigin(rob);
-      System.out.printf("Origin: %d,%d\n", origin[0], origin[1]);
-      clickAt(rob, origin[0], origin[1]);
-
-      while (true) {
-        playOneRandomGame(rob, origin);
-        clickKey(rob, KeyEvent.VK_SPACE);
-      }
-
-    } catch (Throwable t) {
-      t.printStackTrace();
-    }
+    log.logf("Finished in %.1f s.\n", (end - start) / 1000.0);
   }
 }
