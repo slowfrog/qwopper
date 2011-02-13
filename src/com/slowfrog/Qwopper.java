@@ -320,7 +320,7 @@ public class Qwopper {
   public void startGame() {
     stop = false;
     clickAt(rob, origin[0], origin[1]);
-    if (finished) {
+    if (isFinished()) {
       clickKey(rob, KeyEvent.VK_SPACE);
     }
   }
@@ -337,6 +337,10 @@ public class Qwopper {
       playString(rob, str);
     }
     long end = System.currentTimeMillis();
-    log.logf("Finished in %.1f s.\n", (end - start) / 1000.0);
+    if (stop) {
+      log.logf("Stopped after %.1f s.", (end - start) / 1000.0);
+    } else {
+      log.logf("Finished in %.1f s.", (end - start) / 1000.0);
+    }
   }
 }
