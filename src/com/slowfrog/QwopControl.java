@@ -14,6 +14,7 @@ import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Random;
 
@@ -34,9 +35,9 @@ import javax.swing.Timer;
 public class QwopControl extends JFrame implements Log {
 
   private static final long serialVersionUID = 1;
-  
+
   private static final Font FONT = new Font("Lucida Sans", Font.BOLD, 24);
-  
+
   public static void main(String[] args) {
     try {
       JFrame f = new QwopControl();
@@ -57,6 +58,7 @@ public class QwopControl extends JFrame implements Log {
   private JLabel distance2;
   private JLabel distance3;
 
+  private long startTime;
   private Random random;
   private Timer timer;
 
@@ -136,6 +138,7 @@ public class QwopControl extends JFrame implements Log {
 
     go.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent ev) {
+        startTime = System.currentTimeMillis();
         runGame(go);
       }
     });
@@ -165,7 +168,11 @@ public class QwopControl extends JFrame implements Log {
         ImageIcon icon2 = new ImageIcon();
         icon2.setImage(segmented);
         distance2.setIcon(icon2);
-        distance3.setText(ImageReader.readDigits(transformed, parts));
+        long duration = (System.currentTimeMillis() - startTime) / 1000;
+        String time = (duration / 60) + ":" +
+                      new DecimalFormat("00").format(duration % 60);
+        distance3.setText(ImageReader.readDigits(transformed, parts) + " in " +
+                          time);
 
         if (!qwopper.isRunning()) {
           timer.stop();
