@@ -4,6 +4,8 @@ import java.awt.AWTException;
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Robot;
@@ -12,6 +14,7 @@ import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.List;
 import java.util.Random;
 
 import javax.swing.BoxLayout;
@@ -29,9 +32,11 @@ import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
 public class QwopControl extends JFrame implements Log {
-  
-  private static final long serialVersionUID = 1;
 
+  private static final long serialVersionUID = 1;
+  
+  private static final Font FONT = new Font("Lucida Sans", Font.BOLD, 24);
+  
   public static void main(String[] args) {
     try {
       JFrame f = new QwopControl();
@@ -49,7 +54,9 @@ public class QwopControl extends JFrame implements Log {
   private JScrollPane logScroll;
   private JTextField sequence;
   private JLabel distance;
-  
+  private JLabel distance2;
+  private JLabel distance3;
+
   private Random random;
   private Timer timer;
 
@@ -86,12 +93,20 @@ public class QwopControl extends JFrame implements Log {
     top.add(new JLabel("Current: "), BorderLayout.WEST);
     sequence = new JTextField();
     top.add(sequence, BorderLayout.CENTER);
+    JPanel bottom = new JPanel();
+    top.add(bottom, BorderLayout.SOUTH);
+    bottom.setLayout(new FlowLayout());
     distance = new JLabel();
     distance.setPreferredSize(new Dimension(200, 30));
-    top.add(distance, BorderLayout.SOUTH);
+    bottom.add(distance);
+    distance2 = new JLabel();
+    distance2.setPreferredSize(new Dimension(200, 30));
+    bottom.add(distance2);
+    distance3 = new JLabel();
+    distance3.setFont(FONT);
+    bottom.add(distance3);
     c.add(top, BorderLayout.NORTH);
-    
-    
+
     logOutput = new JTextArea(20, 60);
     logOutput.setEditable(false);
     logScroll = new JScrollPane(logOutput);
@@ -118,19 +133,19 @@ public class QwopControl extends JFrame implements Log {
         sequence.setText(dna);
       }
     });
-    
+
     go.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent ev) {
         runGame(go);
       }
     });
-    
+
     stop.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent ev) {
         qwopper.stop();
       }
     });
-    
+
     timer = new Timer(1000, new ActionListener() {
       public void actionPerformed(ActionEvent ev) {
         Rectangle distRect = new Rectangle();
@@ -143,13 +158,22 @@ public class QwopControl extends JFrame implements Log {
         ImageIcon icon = new ImageIcon();
         icon.setImage(distImg);
         distance.setIcon(icon);
+
+        BufferedImage transformed = ImageReader.threshold(distImg);
+        List<Rectangle> parts = ImageReader.segment(transformed);
+        BufferedImage segmented = ImageReader.drawParts(transformed, parts);
+        ImageIcon icon2 = new ImageIcon();
+        icon2.setImage(segmented);
+        distance2.setIcon(icon2);
+        distance3.setText(ImageReader.readDigits(transformed, parts));
+
         if (!qwopper.isRunning()) {
           timer.stop();
         }
       }
     });
   }
-  
+
   private void runGame(JComponent source) {
     // This is to restore the mouse approximately at its starting position
     // after having clicked on the QWOP window to transfer keyboard focus
