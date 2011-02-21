@@ -112,12 +112,15 @@ public class Qwopper {
   }
 
   /**
-   * Play a string. Interpret a string of QWOPqwop+ as a music sheet. QWOP means
-   * press the key Q, W, O or P qwop means release the key + means wait for a
-   * small delay
-   * 
+   * Play a string. Interpret a string of QWOPqwop+ as a music sheet.
+   * <ul>
+   * <li>QWOP means press the key Q, W, O or P</li>
+   * <li>qwop means release the key</li>
+   * <li>+ means wait for a small delay</li>
+   * </ul>
    */
   private void playString(String str) {
+    this.string = str;
     for (int i = 0; i < str.length(); ++i) {
       if (stop) {
         return;
@@ -260,6 +263,8 @@ public class Qwopper {
   private Log log;
 
   private boolean stop;
+  
+  private String string;
 
   public Qwopper(Robot rob, Log log) {
     this.rob = rob;
@@ -268,6 +273,10 @@ public class Qwopper {
 
   public int[] getOrigin() {
     return origin;
+  }
+  
+  public String getString() {
+    return this.string;
   }
 
   /** Look for the origin of the game area on screen. */
@@ -336,12 +345,12 @@ public class Qwopper {
   }
 
   public void stop() {
-    stop = true;
+    this.stop = true;
   }
 
   private void stopRunning() {
     Point before = MouseInfo.getPointerInfo().getLocation();
-    
+
     // Restore focus to QWOP (after a button click on QwopControl)
     clickAt(rob, origin[0], origin[1]);
     // Make sure all possible keys are released
@@ -349,7 +358,7 @@ public class Qwopper {
     rob.keyRelease(KeyEvent.VK_W);
     rob.keyRelease(KeyEvent.VK_O);
     rob.keyRelease(KeyEvent.VK_P);
-    
+
     // Return the mouse cursor to its initial position...
     rob.mouseMove(before.x, before.y);
   }

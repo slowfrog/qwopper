@@ -127,7 +127,7 @@ public class QwopControl extends JFrame implements Log {
           logf("Origin at %d,%d", origin[0], origin[1]);
 
         } catch (Throwable e) {
-          log("Error finding origin", e);
+          log("Error finding origin: " + e.getMessage());
         }
       }
     });
@@ -151,50 +151,62 @@ public class QwopControl extends JFrame implements Log {
       public void actionPerformed(ActionEvent ev) {
         qwopper.stop();
         go.setEnabled(true);
+        timer.stop();
+        
+        float runDistance = Float.parseFloat(captureDistance());
+        RunInfo info = new RunInfo(qwopper.getString(), false, true, (System
+            .currentTimeMillis() - startTime), runDistance);
+        log(info.toString());
       }
     });
 
     timer = new Timer(1000, new ActionListener() {
       public void actionPerformed(ActionEvent ev) {
-        Rectangle distRect = new Rectangle();
-        int[] origin = qwopper.getOrigin();
-        distRect.x = origin[0] + 200;
-        distRect.y = origin[1] + 20;
-        distRect.width = 200;
-        distRect.height = 30;
-        BufferedImage distImg = rob.createScreenCapture(distRect);
-        ImageIcon icon = new ImageIcon();
-        icon.setImage(distImg);
-        distance.setIcon(icon);
-
-        BufferedImage transformed = ImageReader.threshold(distImg);
-        List<Rectangle> parts = ImageReader.segment(transformed);
-        BufferedImage segmented = ImageReader.drawParts(transformed, parts);
-        ImageIcon icon2 = new ImageIcon();
-        icon2.setImage(segmented);
-        distance2.setIcon(icon2);
         long duration = (System.currentTimeMillis() - startTime) / 1000;
         if (duration == 0) {
           duration = 1; // To avoid division by zero
         }
         String time = (duration / 60) + ":" +
                       new DecimalFormat("00").format(duration % 60);
-        float distance = Float.parseFloat(ImageReader.readDigits(transformed,
-            parts));
-        float speed = (distance / duration);
+        float runDistance = Float.parseFloat(captureDistance());
+        float speed = (runDistance / duration);
         DecimalFormatSymbols symbols = new DecimalFormat()
             .getDecimalFormatSymbols();
         symbols.setDecimalSeparator('.');
         DecimalFormat df = new DecimalFormat("0.000", symbols);
         String speedStr = df.format(speed);
-        distance3.setText(distance + " in " + time + ", v=" + speedStr);
+        distance3.setText(runDistance + " in " + time + ", v=" + speedStr);
 
         if (!qwopper.isRunning()) {
           timer.stop();
           go.setEnabled(true);
+          RunInfo info = new RunInfo(qwopper.getString(), runDistance < 100,
+              false, (System.currentTimeMillis() - startTime), runDistance);
+          log(info.toString());
         }
       }
     });
+  }
+
+  private String captureDistance() {
+    Rectangle distRect = new Rectangle();
+    int[] origin = qwopper.getOrigin();
+    distRect.x = origin[0] + 200;
+    distRect.y = origin[1] + 20;
+    distRect.width = 200;
+    distRect.height = 30;
+    BufferedImage distImg = rob.createScreenCapture(distRect);
+    ImageIcon icon = new ImageIcon();
+    icon.setImage(distImg);
+    distance.setIcon(icon);
+
+    BufferedImage transformed = ImageReader.threshold(distImg);
+    List<Rectangle> parts = ImageReader.segment(transformed);
+    BufferedImage segmented = ImageReader.drawParts(transformed, parts);
+    ImageIcon icon2 = new ImageIcon();
+    icon2.setImage(segmented);
+    distance2.setIcon(icon2);
+    return ImageReader.readDigits(transformed, parts);
   }
 
   private void runGame() {
