@@ -158,6 +158,10 @@ public class Qwopper {
 
       case '+':
         doWait(100);
+        // After each delay, check the screen to see if it's finished
+        if (isFinished()) {
+          return;
+        }
         break;
 
       default:
