@@ -6,6 +6,7 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Robot;
@@ -139,13 +140,15 @@ public class QwopControl extends JFrame implements Log {
     go.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent ev) {
         startTime = System.currentTimeMillis();
-        runGame(go);
+        runGame();
+        go.setEnabled(false);
       }
     });
 
     stop.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent ev) {
         qwopper.stop();
+        go.setEnabled(true);
       }
     });
 
@@ -176,21 +179,21 @@ public class QwopControl extends JFrame implements Log {
 
         if (!qwopper.isRunning()) {
           timer.stop();
+          go.setEnabled(true);
         }
       }
     });
   }
 
-  private void runGame(JComponent source) {
-    // This is to restore the mouse approximately at its starting position
+  private void runGame() {
+    // This is to restore the mouse to its starting position
     // after having clicked on the QWOP window to transfer keyboard focus
-    final Point screenPoint = new Point(5, 5);
-    SwingUtilities.convertPointToScreen(screenPoint, source);
+    final Point screenPoint = MouseInfo.getPointerInfo().getLocation();
     execOutOfAWT(new Runnable() {
       public void run() {
         qwopper.startGame();
         rob.mouseMove(screenPoint.x, screenPoint.y);
-        timer.setDelay(1000);
+        timer.setDelay(250);
         timer.start();
 
         String dna = sequence.getText();

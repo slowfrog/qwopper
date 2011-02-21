@@ -7,6 +7,8 @@ package com.slowfrog;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.MouseInfo;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.Toolkit;
@@ -115,7 +117,7 @@ public class Qwopper {
    * small delay
    * 
    */
-  private void playString(Robot rob, String str) {
+  private void playString(String str) {
     for (int i = 0; i < str.length(); ++i) {
       if (stop) {
         return;
@@ -250,16 +252,16 @@ public class Qwopper {
   private int[] origin;
 
   private boolean finished;
-  
+
   private Log log;
-  
+
   private boolean stop;
 
   public Qwopper(Robot rob, Log log) {
     this.rob = rob;
     this.log = log;
   }
-  
+
   public int[] getOrigin() {
     return origin;
   }
@@ -302,7 +304,7 @@ public class Qwopper {
   public boolean isRunning() {
     return !(this.stop || this.finished);
   }
-  
+
   /** Find the real origin of the game. */
   public int[] findRealOrigin() {
     origin = findOrigin(rob);
@@ -322,11 +324,30 @@ public class Qwopper {
     clickAt(rob, origin[0], origin[1]);
     if (isFinished()) {
       clickKey(rob, KeyEvent.VK_SPACE);
+    } else {
+      // Press 'R' for restart
+      rob.keyPress(KeyEvent.VK_R);
+      rob.keyRelease(KeyEvent.VK_R);
     }
   }
-  
+
   public void stop() {
     stop = true;
+  }
+
+  private void stopRunning() {
+    Point before = MouseInfo.getPointerInfo().getLocation();
+    
+    // Restore focus to QWOP (after a button click on QwopControl)
+    clickAt(rob, origin[0], origin[1]);
+    // Make sure all possible keys are released
+    rob.keyRelease(KeyEvent.VK_Q);
+    rob.keyRelease(KeyEvent.VK_W);
+    rob.keyRelease(KeyEvent.VK_O);
+    rob.keyRelease(KeyEvent.VK_P);
+    
+    // Return the mouse cursor to its initial position...
+    rob.mouseMove(before.x, before.y);
   }
 
   public void playOneRandomGame(String str) {
@@ -334,8 +355,9 @@ public class Qwopper {
     long start = System.currentTimeMillis();
     doWait(500);
     while (!(isFinished() || stop)) {
-      playString(rob, str);
+      playString(str);
     }
+    stopRunning();
     long end = System.currentTimeMillis();
     if (stop) {
       log.logf("Stopped after %.1f s.", (end - start) / 1000.0);
