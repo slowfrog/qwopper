@@ -15,6 +15,7 @@ import java.awt.Toolkit;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -265,6 +266,10 @@ public class Qwopper {
   private boolean stop;
   
   private String string;
+  
+  private BufferedImage capture;
+  
+  private BufferedImage transformed;
 
   public Qwopper(Robot rob, Log log) {
     this.rob = rob;
@@ -272,11 +277,19 @@ public class Qwopper {
   }
 
   public int[] getOrigin() {
-    return origin;
+    return this.origin;
   }
   
   public String getString() {
     return this.string;
+  }
+  
+  public BufferedImage getLastCapture() {
+    return this.capture;
+  }
+  
+  public BufferedImage getLastTransformed() {
+    return this.transformed;
   }
 
   /** Look for the origin of the game area on screen. */
@@ -362,8 +375,23 @@ public class Qwopper {
     // Return the mouse cursor to its initial position...
     rob.mouseMove(before.x, before.y);
   }
+  
+  public String captureDistance() {
+    Rectangle distRect = new Rectangle();
+    distRect.x = origin[0] + 200;
+    distRect.y = origin[1] + 20;
+    distRect.width = 200;
+    distRect.height = 30;
+    this.capture = rob.createScreenCapture(distRect);
 
-  public void playOneRandomGame(String str) {
+    BufferedImage thresholded = ImageReader.threshold(this.capture);
+    List<Rectangle> parts = ImageReader.segment(thresholded);
+    this.transformed = ImageReader.drawParts(thresholded, parts);
+    return ImageReader.readDigits(thresholded, parts);
+  }
+
+
+  public RunInfo playOneGame(String str) {
     log.log("Playing " + str);
     long start = System.currentTimeMillis();
     doWait(500);
@@ -371,11 +399,16 @@ public class Qwopper {
       playString(str);
     }
     stopRunning();
+    
     long end = System.currentTimeMillis();
+    float distance = Float.parseFloat(captureDistance());
+    RunInfo info;
     if (stop) {
-      log.logf("Stopped after %.1f s.", (end - start) / 1000.0);
+      info = new RunInfo(str, false, true, end - start, distance);
     } else {
-      log.logf("Finished in %.1f s.", (end - start) / 1000.0);
+      info = new RunInfo(str, distance < 100, false, end - start, distance);
     }
+    log.log(info.toString());
+    return info;
   }
 }

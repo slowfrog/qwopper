@@ -8,22 +8,18 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.MouseInfo;
 import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.util.List;
 import java.util.Random;
 
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -63,10 +59,12 @@ public class QwopControl extends JFrame implements Log {
   private long startTime;
   private Random random;
   private Timer timer;
+  private int runsLeft;
+  private long timeLimit;
 
   public QwopControl() throws AWTException {
     super("QWOP control");
-    this.move(200, 0);
+    this.setLocation(200, 0);
     this.setDefaultCloseOperation(EXIT_ON_CLOSE);
 
     rob = new Robot();
@@ -88,6 +86,9 @@ public class QwopControl extends JFrame implements Log {
 
     final JButton go = new JButton("Run, Qwop, run!");
     bar.add(go);
+
+    final JButton go10 = new JButton("Run 10 times 60 s. max");
+    bar.add(go10);
 
     final JButton stop = new JButton("Stop");
     bar.add(stop);
@@ -141,9 +142,17 @@ public class QwopControl extends JFrame implements Log {
 
     go.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent ev) {
-        startTime = System.currentTimeMillis();
-        runGame();
+        runGame(sequence.getText(), 1, 0);
         go.setEnabled(false);
+        go10.setEnabled(false);
+      }
+    });
+
+    go10.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent ev) {
+        runGame(sequence.getText(), 10, 60000);
+        go.setEnabled(false);
+        go10.setEnabled(false);
       }
     });
 
@@ -151,18 +160,15 @@ public class QwopControl extends JFrame implements Log {
       public void actionPerformed(ActionEvent ev) {
         qwopper.stop();
         go.setEnabled(true);
+        go10.setEnabled(true);
         timer.stop();
-        
-        float runDistance = Float.parseFloat(captureDistance());
-        RunInfo info = new RunInfo(qwopper.getString(), false, true, (System
-            .currentTimeMillis() - startTime), runDistance);
-        log(info.toString());
       }
     });
 
     timer = new Timer(1000, new ActionListener() {
       public void actionPerformed(ActionEvent ev) {
-        long duration = (System.currentTimeMillis() - startTime) / 1000;
+        long now = System.currentTimeMillis();
+        long duration = (now - startTime) / 1000;
         if (duration == 0) {
           duration = 1; // To avoid division by zero
         }
@@ -177,51 +183,56 @@ public class QwopControl extends JFrame implements Log {
         String speedStr = df.format(speed);
         distance3.setText(runDistance + " in " + time + ", v=" + speedStr);
 
+        if ((timeLimit != 0) && (now > timeLimit)) {
+          qwopper.stop();
+        }
+
         if (!qwopper.isRunning()) {
           timer.stop();
-          go.setEnabled(true);
-          RunInfo info = new RunInfo(qwopper.getString(), runDistance < 100,
-              false, (System.currentTimeMillis() - startTime), runDistance);
-          log(info.toString());
+          if (--runsLeft == 0) {
+            go.setEnabled(true);
+            go10.setEnabled(true);
+          } else {
+            nextGame(sequence.getText(), 60000);
+          }
         }
       }
     });
   }
 
   private String captureDistance() {
-    Rectangle distRect = new Rectangle();
-    int[] origin = qwopper.getOrigin();
-    distRect.x = origin[0] + 200;
-    distRect.y = origin[1] + 20;
-    distRect.width = 200;
-    distRect.height = 30;
-    BufferedImage distImg = rob.createScreenCapture(distRect);
-    ImageIcon icon = new ImageIcon();
-    icon.setImage(distImg);
-    distance.setIcon(icon);
+    String ret = qwopper.captureDistance();
 
-    BufferedImage transformed = ImageReader.threshold(distImg);
-    List<Rectangle> parts = ImageReader.segment(transformed);
-    BufferedImage segmented = ImageReader.drawParts(transformed, parts);
+    ImageIcon icon = new ImageIcon();
+    icon.setImage(qwopper.getLastCapture());
+    distance.setIcon(icon);
     ImageIcon icon2 = new ImageIcon();
-    icon2.setImage(segmented);
+    icon2.setImage(qwopper.getLastTransformed());
     distance2.setIcon(icon2);
-    return ImageReader.readDigits(transformed, parts);
+
+    return ret;
   }
 
-  private void runGame() {
+  private void runGame(final String dna, int count, int maxTime) {
+
+    this.runsLeft = count;
     // This is to restore the mouse to its starting position
     // after having clicked on the QWOP window to transfer keyboard focus
-    final Point screenPoint = MouseInfo.getPointerInfo().getLocation();
+    nextGame(dna, maxTime);
+  }
+
+  private void nextGame(final String dna, final int maxTime) {
     execOutOfAWT(new Runnable() {
       public void run() {
+        Point screenPoint = MouseInfo.getPointerInfo().getLocation();
+        startTime = System.currentTimeMillis();
+        timeLimit = (maxTime > 0) ? startTime + maxTime : 0;
         qwopper.startGame();
         rob.mouseMove(screenPoint.x, screenPoint.y);
         timer.setDelay(250);
         timer.start();
 
-        String dna = sequence.getText();
-        qwopper.playOneRandomGame(dna);
+        qwopper.playOneGame(dna);
       }
     });
   }
