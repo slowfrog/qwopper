@@ -16,6 +16,7 @@ import java.awt.image.BufferedImage;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.List;
 import java.util.Random;
 
@@ -107,6 +108,7 @@ public class QwopControl extends JFrame implements Log {
     bottom.add(distance2);
     distance3 = new JLabel();
     distance3.setFont(FONT);
+    distance3.setPreferredSize(new Dimension(300, 30));
     bottom.add(distance3);
     c.add(top, BorderLayout.NORTH);
 
@@ -172,10 +174,20 @@ public class QwopControl extends JFrame implements Log {
         icon2.setImage(segmented);
         distance2.setIcon(icon2);
         long duration = (System.currentTimeMillis() - startTime) / 1000;
+        if (duration == 0) {
+          duration = 1; // To avoid division by zero
+        }
         String time = (duration / 60) + ":" +
                       new DecimalFormat("00").format(duration % 60);
-        distance3.setText(ImageReader.readDigits(transformed, parts) + " in " +
-                          time);
+        float distance = Float.parseFloat(ImageReader.readDigits(transformed,
+            parts));
+        float speed = (distance / duration);
+        DecimalFormatSymbols symbols = new DecimalFormat()
+            .getDecimalFormatSymbols();
+        symbols.setDecimalSeparator('.');
+        DecimalFormat df = new DecimalFormat("0.000", symbols);
+        String speedStr = df.format(speed);
+        distance3.setText(distance + " in " + time + ", v=" + speedStr);
 
         if (!qwopper.isRunning()) {
           timer.stop();
