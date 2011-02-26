@@ -18,7 +18,6 @@ import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.Random;
 
-
 /**
  * This class will try to play QWOP and evolve some way to play well...
  * hopefully. Game at {@link http://foddy.net/Athletics.html}
@@ -29,6 +28,9 @@ public class Qwopper {
 
   /** Tolerance for color comparison. */
   private static final int RGB_TOLERANCE = 3;
+
+  /** Unit delay in milliseconds when playing a 'string' */
+  private static final int DELAY = 100;
 
   /** Distance between two colors. */
   private static int colorDistance(int rgb1, int rgb2) {
@@ -99,6 +101,10 @@ public class Qwopper {
     rob.mouseRelease(InputEvent.BUTTON1_MASK);
   }
 
+  /**
+   * Simulates a key 'click' by sending a key press followed by a key release
+   * event.
+   */
   private static void clickKey(Robot rob, int keycode) {
     rob.keyPress(keycode);
     rob.keyRelease(keycode);
@@ -123,6 +129,7 @@ public class Qwopper {
    */
   private void playString(String str) {
     this.string = str;
+    long lastTick = System.currentTimeMillis();
     for (int i = 0; i < str.length(); ++i) {
       if (stop) {
         return;
@@ -162,7 +169,13 @@ public class Qwopper {
         break;
 
       case '+':
-        doWait(100);
+        int waitTime = (int) ((lastTick + DELAY) - System.currentTimeMillis());
+        if (waitTime > 0) {
+          doWait(waitTime);
+        }
+        long newTick = System.currentTimeMillis();
+        log.logf("w=%03d d=%03d", waitTime, newTick - lastTick);
+        lastTick = newTick;
         // After each delay, check the screen to see if it's finished
         if (isFinished()) {
           return;
@@ -265,11 +278,11 @@ public class Qwopper {
   private Log log;
 
   private boolean stop;
-  
+
   private String string;
-  
+
   private BufferedImage capture;
-  
+
   private BufferedImage transformed;
 
   public Qwopper(Robot rob, Log log) {
@@ -280,15 +293,15 @@ public class Qwopper {
   public int[] getOrigin() {
     return this.origin;
   }
-  
+
   public String getString() {
     return this.string;
   }
-  
+
   public BufferedImage getLastCapture() {
     return this.capture;
   }
-  
+
   public BufferedImage getLastTransformed() {
     return this.transformed;
   }
@@ -376,7 +389,7 @@ public class Qwopper {
     // Return the mouse cursor to its initial position...
     rob.mouseMove(before.x, before.y);
   }
-  
+
   public String captureDistance() {
     Rectangle distRect = new Rectangle();
     distRect.x = origin[0] + 200;
@@ -391,7 +404,6 @@ public class Qwopper {
     return ImageReader.readDigits(thresholded, parts);
   }
 
-
   public RunInfo playOneGame(String str) {
     log.log("Playing " + str);
     long start = System.currentTimeMillis();
@@ -400,7 +412,7 @@ public class Qwopper {
       playString(str);
     }
     stopRunning();
-    
+
     long end = System.currentTimeMillis();
     float distance = Float.parseFloat(captureDistance());
     RunInfo info;
