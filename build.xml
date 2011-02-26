@@ -1,0 +1,49 @@
+<project name="qwopper" default="package">
+
+  <target name="init"
+          description="Common initialization (properties, directories..)">
+    <property name="srcdir" value="src" />
+    <property name="testsrcdir" value="test" />
+    <property name="libdir" value="lib" />
+    <property name="imgdir" value="img" />
+
+    <property name="classesdir" value="bin" />
+    <property name="distdir" value="dist" />
+  </target>
+
+  <target name="clean"
+          description="Clean up everything that has been generated"
+          depends="init">
+
+    <delete dir="${classesdir}" failonerror="no" />
+    <delete dir="${distdir}" failonerror="no" />
+  </target>
+
+  <target name="compile" description="Compile main sources" depends="init">
+    <mkdir dir="${classesdir}" />
+    <javac srcdir="${srcdir}" destdir="${classesdir}" includes="**/*.java" />
+  </target>
+  
+  <target name="package"
+          description="Compile and make a runnable jar"
+          depends="compile">
+    <copy todir="${classesdir}">
+      <fileset dir="${imgdir}" includes="digits.png" />
+    </copy>
+    <tstamp>
+      <format property="build_date" pattern="yyyy-MM-dd HH:mm:ss" />
+    </tstamp>
+      
+    <copy todir="${classesdir}" file="${srcdir}/META-INF/MANIFEST.MF">
+      <filterset>
+        <filter token="BUILD_DATE" value="${build_date}" />
+      </filterset>
+    </copy>
+
+    <mkdir dir="${distdir}" />
+    <jar jarfile="${distdir}/qwopper.jar" manifest="${classesdir}/MANIFEST.MF">
+      <fileset dir="${classesdir}" includes="**/*.class, **/*.png" />
+    </jar>
+  </target>
+
+</project>

@@ -1,0 +1,2 @@
+Main-Class: com.slowfrog.qwop.ui.QwopControl
+Build-Date: @BUILD_DATE@
