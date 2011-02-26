@@ -1,4 +1,4 @@
-package com.slowfrog;
+package com.slowfrog.qwop;
 
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
@@ -147,8 +147,6 @@ public class ImageReader {
   }
 
   public static String readDigits(BufferedImage input, List<Rectangle> parts) {
-    int lastX = 0;
-    // System.out.println("-----------------");
     String str = "";
     for (Rectangle rect : parts) {
       str += compareDigit(input, rect);

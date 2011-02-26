@@ -1,4 +1,4 @@
-package com.slowfrog;
+package com.slowfrog.qwop;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -9,6 +9,8 @@ import javax.imageio.ImageIO;
 import static org.junit.Assert.*;
 import static org.hamcrest.CoreMatchers.*;
 import org.junit.Test;
+
+import com.slowfrog.qwop.ImageReader;
 
 public class TestImageReader {
 

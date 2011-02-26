@@ -1,4 +1,4 @@
-package com.slowfrog;
+package com.slowfrog.qwop;
 
 public class RunInfo {
 

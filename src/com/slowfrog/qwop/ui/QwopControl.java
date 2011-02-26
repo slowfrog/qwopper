@@ -1,4 +1,4 @@
-package com.slowfrog;
+package com.slowfrog.qwop.ui;
 
 import java.awt.AWTException;
 import java.awt.BorderLayout;
@@ -29,6 +29,9 @@ import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+
+import com.slowfrog.qwop.Log;
+import com.slowfrog.qwop.Qwopper;
 
 public class QwopControl extends JFrame implements Log {
 
