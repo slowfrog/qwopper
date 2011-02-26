@@ -2,7 +2,6 @@ package com.slowfrog.qwop;
 
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +22,8 @@ public class ImageReader {
 
   private static BufferedImage loadRefDigits() {
     try {
-      return ImageIO.read(new File("img/digits.png"));
+      return ImageIO.read(ImageReader.class
+          .getResourceAsStream("/digits.png"));
 
     } catch (IOException e) {
       throw new RuntimeException(" Error reading reference digits", e);
@@ -123,7 +123,7 @@ public class ImageReader {
 
   public static BufferedImage drawParts(BufferedImage input,
       List<Rectangle> parts) {
-    
+
     int width = input.getWidth();
     int height = input.getHeight();
     BufferedImage output = new BufferedImage(width, height,
@@ -142,7 +142,7 @@ public class ImageReader {
         }
       }
       lastX += rect.width + 3;
-    }    
+    }
     return output;
   }
 
