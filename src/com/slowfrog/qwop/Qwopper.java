@@ -30,7 +30,10 @@ public class Qwopper {
   private static final int RGB_TOLERANCE = 3;
 
   /** Unit delay in milliseconds when playing a 'string' */
-  private static final int DELAY = 100;
+  private static final int DELAY = 150;
+
+  /** All possible 'notes' */
+  private static final String NOTES = "QWOPqwop++++";
 
   /** Distance between two colors. */
   private static int colorDistance(int rgb1, int rgb2) {
@@ -174,7 +177,7 @@ public class Qwopper {
           doWait(waitTime);
         }
         long newTick = System.currentTimeMillis();
-        log.logf("w=%03d d=%03d", waitTime, newTick - lastTick);
+        log.logf("w=%03d d=%03d\n", waitTime, newTick - lastTick);
         lastTick = newTick;
         // After each delay, check the screen to see if it's finished
         if (isFinished()) {
@@ -187,9 +190,6 @@ public class Qwopper {
       }
     }
   }
-
-  /** All possible 'notes' */
-  private static final String NOTES = "QWOPqwop++";
 
   private static int keyIndex(char key) {
     switch (Character.toLowerCase(key)) {
