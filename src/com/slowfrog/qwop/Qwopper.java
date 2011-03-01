@@ -457,7 +457,6 @@ public class Qwopper {
     } else {
       info = new RunInfo(str, distance < 100, false, end - this.start, distance);
     }
-    log.log(info.toString());
     return info;
   }
 }
