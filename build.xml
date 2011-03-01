@@ -1,6 +1,6 @@
 <project name="qwopper" default="package">
 
-  <target name="init"
+  <target name="init" 
           description="Common initialization (properties, directories..)">
     <property name="srcdir" value="src" />
     <property name="testsrcdir" value="test" />
@@ -21,7 +21,8 @@
 
   <target name="compile" description="Compile main sources" depends="init">
     <mkdir dir="${classesdir}" />
-    <javac srcdir="${srcdir}" destdir="${classesdir}" includes="**/*.java" />
+    <javac srcdir="${srcdir}" destdir="${classesdir}" includes="**/*.java" 
+           debug="on" debuglevel="lines,source"/>
   </target>
   
   <target name="package"
