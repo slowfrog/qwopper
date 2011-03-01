@@ -30,7 +30,13 @@ public class Qwopper {
   private static final int RGB_TOLERANCE = 3;
 
   /** Unit delay in milliseconds when playing a 'string' */
-  private static final int DELAY = 100;
+  private static final int DELAY = 150;
+
+  /** Interval between two speed checks. */
+  private static final int CHECK_INTERVAL = 1000;
+
+  /** All possible 'notes' */
+  private static final String NOTES = "QWOPqwop++++";
 
   /** Distance between two colors. */
   private static int colorDistance(int rgb1, int rgb2) {
@@ -169,13 +175,21 @@ public class Qwopper {
         break;
 
       case '+':
+        if (System.currentTimeMillis() > this.nextCheck) {
+          checkSpeed();
+        }
+
         int waitTime = (int) ((lastTick + DELAY) - System.currentTimeMillis());
         if (waitTime > 0) {
           doWait(waitTime);
         }
         long newTick = System.currentTimeMillis();
-        log.logf("w=%03d d=%03d", waitTime, newTick - lastTick);
+        // log.logf("w=%03d d=%03d\n", waitTime, newTick - lastTick);
         lastTick = newTick;
+        if ((this.timeLimit != 0) && (newTick > this.timeLimit)) {
+          this.stop = true;
+          return;
+        }
         // After each delay, check the screen to see if it's finished
         if (isFinished()) {
           return;
@@ -188,8 +202,17 @@ public class Qwopper {
     }
   }
 
-  /** All possible 'notes' */
-  private static final String NOTES = "QWOPqwop++";
+  private void checkSpeed() {
+    this.nextCheck += CHECK_INTERVAL;
+    String distStr = captureDistance();
+    float dist = Float.parseFloat(distStr);
+    long dur = System.currentTimeMillis() - this.start;
+    if (dur == 0) {
+      dur = 1;
+    }
+    float speed = (dist * 1000) / dur;
+    log.logf("%.1fm in %ds: speed=%.3f\n", dist, (dur / 1000), speed);
+  }
 
   private static int keyIndex(char key) {
     switch (Character.toLowerCase(key)) {
@@ -276,6 +299,12 @@ public class Qwopper {
   private boolean finished;
 
   private Log log;
+
+  private long start;
+
+  private long nextCheck;
+
+  private long timeLimit;
 
   private boolean stop;
 
@@ -404,24 +433,30 @@ public class Qwopper {
     return ImageReader.readDigits(thresholded, parts);
   }
 
-  public RunInfo playOneGame(String str) {
+  public RunInfo playOneGame(String str, long maxDuration) {
     log.log("Playing " + str);
-    long start = System.currentTimeMillis();
-    doWait(500);
+    doWait(500); // 0.5s wait to be sure QWOP is ready to run
+    this.start = System.currentTimeMillis();
+    this.nextCheck = this.start + CHECK_INTERVAL;
+    if (maxDuration > 0) {
+      this.timeLimit = this.start + maxDuration;
+    } else {
+      this.timeLimit = 0;
+    }
     while (!(isFinished() || stop)) {
       playString(str);
     }
     stopRunning();
+    checkSpeed();
 
     long end = System.currentTimeMillis();
     float distance = Float.parseFloat(captureDistance());
     RunInfo info;
     if (stop) {
-      info = new RunInfo(str, false, true, end - start, distance);
+      info = new RunInfo(str, false, true, end - this.start, distance);
     } else {
-      info = new RunInfo(str, distance < 100, false, end - start, distance);
+      info = new RunInfo(str, distance < 100, false, end - this.start, distance);
     }
-    log.log(info.toString());
     return info;
   }
 }

@@ -235,7 +235,7 @@ public class QwopControl extends JFrame implements Log {
         timer.setDelay(250);
         timer.start();
 
-        qwopper.playOneGame(dna);
+        qwopper.playOneGame(dna, 0);
       }
     });
   }
