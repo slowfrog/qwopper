@@ -17,7 +17,7 @@ public class Main {
       String str = args.length > 0 ? args[0] : Qwopper
           .makeRealisticRandomString(50);
       qwop.startGame();
-      RunInfo info = qwop.playOneGame(str);
+      RunInfo info = qwop.playOneGame(str, 60000);
 
     } catch (Throwable t) {
       log.log("Error", t);
