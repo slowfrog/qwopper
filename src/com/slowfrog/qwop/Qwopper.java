@@ -179,7 +179,7 @@ public class Qwopper {
           checkSpeed();
         }
 
-        int waitTime = (int) ((lastTick + DELAY) - System.currentTimeMillis());
+        int waitTime = (int) ((lastTick + delay) - System.currentTimeMillis());
         if (waitTime > 0) {
           doWait(waitTime);
         }
@@ -309,6 +309,8 @@ public class Qwopper {
   private boolean stop;
 
   private String string;
+
+  private int delay = DELAY;
 
   private BufferedImage capture;
 
@@ -453,9 +455,12 @@ public class Qwopper {
     float distance = Float.parseFloat(captureDistance());
     RunInfo info;
     if (stop) {
-      info = new RunInfo(str, false, true, end - this.start, distance);
+      info = new RunInfo(str, this.delay, false, true, end - this.start,
+          distance);
     } else {
-      info = new RunInfo(str, distance < 100, false, end - this.start, distance);
+      info = new RunInfo(str, this.delay, distance < 100, false, end -
+                                                                 this.start,
+          distance);
     }
     return info;
   }

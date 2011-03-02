@@ -30,6 +30,7 @@ public class Main {
       qwop.startGame();
       RunInfo info = qwop.playOneGame(str, 60000);
       LOG.log(info.toString());
+      LOG.log(info.marshal());
     }
   }
 
