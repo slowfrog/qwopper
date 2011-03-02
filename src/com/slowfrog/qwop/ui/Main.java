@@ -1,6 +1,9 @@
 package com.slowfrog.qwop.ui;
 
 import java.awt.Robot;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
 
 import com.slowfrog.qwop.ConsoleLog;
 import com.slowfrog.qwop.Log;
@@ -31,6 +34,21 @@ public class Main {
       RunInfo info = qwop.playOneGame(str, 60000);
       LOG.log(info.toString());
       LOG.log(info.marshal());
+      saveRunInfo("runs.txt", info);
+    }
+  }
+
+  private static void saveRunInfo(String filename, RunInfo info) {
+    try {
+      PrintStream out = new PrintStream(new FileOutputStream(filename, true));
+      try {
+        out.println(info.marshal());
+      } finally {
+        out.flush();
+        out.close();
+      }
+    } catch (IOException ioe) {
+      LOG.log("Error marshalling", ioe);
     }
   }
 
