@@ -8,3 +8,13 @@ RunInfo#1|OP+WQ+op+wq+QPW+O+w+Wqo+++pO+Qw+W++q+PowQ+O+p+++P+++Wp+++o++P+pO++q+++
 RunInfo#1|OP+WQ+op+wq+QPW+O+w+Wqo+++pO+Qw+W++q+PowQ+O+p+++P+++Wp+++o++P+pO++q++++PQ++qw+pQ+P+oW+O++p+ow++++OP++qop|150|0.1|2592|C
 RunInfo#1|OP+WQ+op+wq+QPW+O+w+Wqo+++pO+Qw+W++q+PowQ+O+p+++P+++Wp+++o++P+pO++q++++PQ++qw+pQ+P+oW+O++p+ow++++OP++qop|150|0.1|2592|C
 RunInfo#1|OP+WQ+op+wq+QPW+O+w+Wqo+++pO+Qw+W++q+PowQ+O+p+++P+++Wp+++o++P+pO++q++++PQ++qw+pQ+P+oW+O++p+ow++++OP++qop|150|0.0|2140|C
+RunInfo#1|+++++++OP++o+Qp+++q++WQ+Pq+O+o+++pw+Q+PqOW++p+++++++ow+++++W+O+w+W++w+++PoW+pOw+o+POQ++qop|150|0.1|3766|C
+RunInfo#1|+++++++OP++o+Qp+++q++WQ+Pq+O+o+++pw+Q+PqOW++p+++++++ow+++++W+O+w+W++w+++PoW+pOw+o+POQ++qop|150|0.3|3217|C
+RunInfo#1|+++++++OP++o+Qp+++q++WQ+Pq+O+o+++pw+Q+PqOW++p+++++++ow+++++W+O+w+W++w+++PoW+pOw+o+POQ++qop|150|0.7|3669|C
+RunInfo#1|+++++++OP++o+Qp+++q++WQ+Pq+O+o+++pw+Q+PqOW++p+++++++ow+++++W+O+w+W++w+++PoW+pOw+o+POQ++qop|150|0.5|3227|C
+RunInfo#1|+++++++OP++o+Qp+++q++WQ+Pq+O+o+++pw+Q+PqOW++p+++++++ow+++++W+O+w+W++w+++PoW+pOw+o+POQ++qop|150|0.4|3222|C
+RunInfo#1|+++++++OP++o+Qp+++q++WQ+Pq+O+o+++pw+Q+PqOW++p+++++++ow+++++W+O+w+W++w+++PoW+pOw+o+POQ++qop|150|0.3|3372|C
+RunInfo#1|+++++++OP++o+Qp+++q++WQ+Pq+O+o+++pw+Q+PqOW++p+++++++ow+++++W+O+w+W++w+++PoW+pOw+o+POQ++qop|150|0.6|3834|C
+RunInfo#1|+++++++OP++o+Qp+++q++WQ+Pq+O+o+++pw+Q+PqOW++p+++++++ow+++++W+O+w+W++w+++PoW+pOw+o+POQ++qop|150|0.7|3826|C
+RunInfo#1|+++++++OP++o+Qp+++q++WQ+Pq+O+o+++pw+Q+PqOW++p+++++++ow+++++W+O+w+W++w+++PoW+pOw+o+POQ++qop|150|0.7|3675|C
+RunInfo#1|+++++++OP++o+Qp+++q++WQ+Pq+O+o+++pw+Q+PqOW++p+++++++ow+++++W+O+w+W++w+++PoW+pOw+o+POQ++qop|150|0.5|3227|C
