@@ -412,6 +412,11 @@ public class Qwopper {
     // Restore focus to QWOP (after a button click on QwopControl)
     clickAt(rob, origin[0], origin[1]);
     // Make sure all possible keys are released
+    rob.keyPress(KeyEvent.VK_Q);
+    rob.keyPress(KeyEvent.VK_W);
+    rob.keyPress(KeyEvent.VK_O);
+    rob.keyPress(KeyEvent.VK_P);
+    doWait(20);
     rob.keyRelease(KeyEvent.VK_Q);
     rob.keyRelease(KeyEvent.VK_W);
     rob.keyRelease(KeyEvent.VK_O);
@@ -452,6 +457,7 @@ public class Qwopper {
     checkSpeed();
 
     long end = System.currentTimeMillis();
+    doWait(1000);
     float distance = Float.parseFloat(captureDistance());
     RunInfo info;
     if (stop) {
