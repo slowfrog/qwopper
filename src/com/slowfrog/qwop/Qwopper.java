@@ -36,7 +36,7 @@ public class Qwopper {
   private static final int CHECK_INTERVAL = 1000;
 
   /** All possible 'notes' */
-  private static final String NOTES = "QWOPqwop++++";
+  private static final String NOTES = "QWOPqwop++";
 
   /** Distance between two colors. */
   private static int colorDistance(int rgb1, int rgb2) {

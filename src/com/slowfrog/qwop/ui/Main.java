@@ -20,7 +20,7 @@ public class Main {
       Qwopper qwop = new Qwopper(rob, LOG);
       qwop.findRealOrigin();
       testString(qwop,
-          args.length > 0 ? args[0] : Qwopper.makeRealisticRandomString(50), 10);
+          args.length > 0 ? args[0] : Qwopper.makeRealisticRandomString(30), 10);
 
     } catch (Throwable t) {
       LOG.log("Error", t);
