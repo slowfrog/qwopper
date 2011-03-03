@@ -31,6 +31,23 @@ public class RunInfo {
            this.delay + "|" + this.distance + "|" + this.duration + "|" +
            this.getResultCode();
   }
+  
+  public static RunInfo unmarshal(String line) {
+    String[] parts = line.split("\\|");
+    if (parts[0].equals("RunInfo#1")) {
+      String string = parts[1];
+      int delay = Integer.parseInt(parts[2]);
+      float distance = Float.parseFloat(parts[3]);
+      long duration = Long.parseLong(parts[4]);
+      String resultCode = parts[5];
+      boolean crashed = resultCode.equals("C");
+      boolean stopped = resultCode.equals("S");
+      return new RunInfo(string, delay, crashed, stopped, duration, distance);
+      
+    } else {
+      throw new RuntimeException("Unknown format: " + parts[0]);
+    }
+  }
 
   public String toString() {
     return ("Ran " + distance + "m during " + duration + "ms") +
