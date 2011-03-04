@@ -15,21 +15,42 @@ public class Main {
   private static final Log LOG = new ConsoleLog();
 
   public static void main(String[] args) {
+
+    int tries = 10;
+    int count = 1;
+    String str = null;
+    if (args.length > 0) {
+      try {
+        tries = Integer.parseInt(args[0]);
+        if (args.length > 1) {
+          count = Integer.parseInt(args[1]);
+        }
+
+      } catch (NumberFormatException e) {
+        // First arg is not a number: probably a code string
+        str = args[0];
+      }
+    }
+
     try {
       Robot rob = new Robot();
       Qwopper qwop = new Qwopper(rob, LOG);
       qwop.findRealOrigin();
-      testString(qwop,
-          args.length > 0 ? args[0] : Qwopper.makeRealisticRandomString(30), 10);
+      for (int round = 0; round < count; ++round) {
+        if (count > 1) {
+          str = Qwopper.makeRealisticRandomString(30);
+        }
+        testString(qwop, str, tries, round);
+      }
 
     } catch (Throwable t) {
       LOG.log("Error", t);
     }
   }
 
-  private static void testString(Qwopper qwop, String str, int count) {
-    for (int i = 0; i < 10; ++i) {
-      LOG.logf("Run #%d\n", i);
+  private static void testString(Qwopper qwop, String str, int count, int round) {
+    for (int i = 0; i < count; ++i) {
+      LOG.logf("Run #%d.%d\n", round, i);
       qwop.startGame();
       RunInfo info = qwop.playOneGame(str, 60000);
       LOG.log(info.toString());
