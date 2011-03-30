@@ -1,6 +1,5 @@
 package com.slowfrog.qwop;
 
-public interface IFilter {
-
-  boolean matches(Individual individual);
+public interface IFilter<T> {
+  boolean matches(T t);
 }
