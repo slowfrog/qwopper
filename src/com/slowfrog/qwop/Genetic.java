@@ -4,7 +4,9 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Genetic {
@@ -29,8 +31,21 @@ public class Genetic {
       totalRuns += indiv.runs.size();
     }
     System.out.println("Total runs: " + totalRuns);
+    
+    List<Individual> good = this.filter(new MinDistFilter(10));
+    System.out.println("Runners up to 10m: " + good.size());
   }
 
+  public List<Individual> filter(IFilter filter) {
+    List<Individual> ret = new ArrayList<Individual>();
+    for (Individual individual : this.population.values()) {
+      if (filter.matches(individual)) {
+        ret.add(individual);
+      }
+    }
+    return ret;
+  }
+  
   public void readPopulation(String filename) {
     try {
       BufferedReader input = new BufferedReader(new FileReader(filename));
