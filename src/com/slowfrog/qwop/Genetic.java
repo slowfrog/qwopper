@@ -27,16 +27,20 @@ public class Genetic {
     System.out
         .println("Population: " + this.population.size() + " individuals");
     int totalRuns = 0;
-    for (Individual indiv: this.population.values()) {
+    for (Individual indiv : this.population.values()) {
       totalRuns += indiv.runs.size();
     }
     System.out.println("Total runs: " + totalRuns);
-    
-    List<Individual> good = this.filter(new MinDistFilter(10));
-    System.out.println("Runners up to 10m: " + good.size());
+
+    IFilter<RunInfo> fiveMetersNotCrashed = new AndFilter<RunInfo>(
+        new MinDistFilter(5), new NotFilter<RunInfo>(new CrashedFilter()));
+    IFilter<Individual> individualFilter = new MinRatioFilter(
+        fiveMetersNotCrashed);
+    List<Individual> good = this.filter(individualFilter);
+    System.out.println("Runners up to 5m and not crashed at least 50%: " + good.size());
   }
 
-  public List<Individual> filter(IFilter filter) {
+  public List<Individual> filter(IFilter<Individual> filter) {
     List<Individual> ret = new ArrayList<Individual>();
     for (Individual individual : this.population.values()) {
       if (filter.matches(individual)) {
@@ -45,7 +49,7 @@ public class Genetic {
     }
     return ret;
   }
-  
+
   public void readPopulation(String filename) {
     try {
       BufferedReader input = new BufferedReader(new FileReader(filename));
