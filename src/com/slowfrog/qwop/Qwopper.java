@@ -467,11 +467,6 @@ public class Qwopper {
   }
 
   public RunInfo playOneGame(String str, long maxDuration) {
-    if (++nbRuns == MAX_RUNS_BETWEEN_RELOAD) {
-      nbRuns = 0;
-      refreshBrowser();
-      log.log("Refreshing browser");
-    }
     
     log.log("Playing " + str);
     doWait(500); // 0.5s wait to be sure QWOP is ready to run
@@ -488,6 +483,12 @@ public class Qwopper {
     stopRunning();
     checkSpeed();
 
+    if (++nbRuns == MAX_RUNS_BETWEEN_RELOAD) {
+      nbRuns = 0;
+      refreshBrowser();
+      log.log("Refreshing browser");
+    }
+    
     long end = System.currentTimeMillis();
     doWait(1000);
     float distance = Float.parseFloat(captureDistance());
