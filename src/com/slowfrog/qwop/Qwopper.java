@@ -38,6 +38,12 @@ public class Qwopper {
   /** All possible 'notes' */
   private static final String NOTES = "QWOPqwop++";
 
+  /**
+   * Number of consecutive runs before we trigger a reload of the browser to
+   * keep CPU and memory usage reasonable.
+   */
+  private static final int MAX_RUNS_BETWEEN_RELOAD = 10;
+
   /** Distance between two colors. */
   private static int colorDistance(int rgb1, int rgb2) {
     int dr = Math.abs(((rgb1 & 0xff0000) >> 16) - ((rgb2 & 0xff0000) >> 16));
@@ -312,6 +318,8 @@ public class Qwopper {
 
   private int delay = DELAY;
 
+  private int nbRuns;
+
   private BufferedImage capture;
 
   private BufferedImage transformed;
@@ -426,6 +434,24 @@ public class Qwopper {
     rob.mouseMove(before.x, before.y);
   }
 
+  public void refreshBrowser() {
+    rob.keyPress(KeyEvent.VK_F5);
+    doWait(20);
+    rob.keyRelease(KeyEvent.VK_F5);
+
+    // Wait some time and try to find the window again
+    for (int i = 0; i < 10; ++i) {
+      doWait(2000);
+      try {
+        this.findRealOrigin();
+        return;
+      } catch (RuntimeException e) {
+        // Probably not available yet
+      }
+    }
+    throw new RuntimeException("Could not find origin after browser reload");
+  }
+
   public String captureDistance() {
     Rectangle distRect = new Rectangle();
     distRect.x = origin[0] + 200;
@@ -441,6 +467,12 @@ public class Qwopper {
   }
 
   public RunInfo playOneGame(String str, long maxDuration) {
+    if (++nbRuns == MAX_RUNS_BETWEEN_RELOAD) {
+      nbRuns = 0;
+      refreshBrowser();
+      log.log("Refreshing browser");
+    }
+    
     log.log("Playing " + str);
     doWait(500); // 0.5s wait to be sure QWOP is ready to run
     this.start = System.currentTimeMillis();
