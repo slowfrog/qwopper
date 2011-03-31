@@ -1,0 +1,6 @@
+QWOPPER: helping QWOP win the 100 meters with genetic programming
+=================================================================
+
+The intended goal of the project is to write a bot able to play QWOP
+(http://www.foddy.net/Athletics.html), training it with genetic programming
+principles.
