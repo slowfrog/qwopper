@@ -435,6 +435,10 @@ public class Qwopper {
   }
 
   public void refreshBrowser() {
+    // Click out of the flash rectangle to give focus to the browser
+    clickAt(rob, origin[0], origin[1]);
+    
+    // Reload (F5)
     rob.keyPress(KeyEvent.VK_F5);
     doWait(20);
     rob.keyRelease(KeyEvent.VK_F5);
